@@ -1,0 +1,6 @@
+/dist
+/bin
+/coverage.*
+.envrc*
+/awsmocks
+/*.out.yaml

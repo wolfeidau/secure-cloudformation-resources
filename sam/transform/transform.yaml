@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: "wolfeidau: Security Transform"
+
+Parameters:
+  AppName:
+    Description: Provide the name of the application.
+    Type: String
+    Default: "serverless-tunnel"
+  Stage:
+    Description: Provide the stage of the application.
+    Type: String
+    Default: "dev"
+  Branch:
+    Description: Provide the branch of the application.
+    Type: String
+    Default: "master"
+
+Globals:
+  Function:
+    Runtime: go1.x
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        APP_NAME: !Ref AppName
+        STAGE: !Ref Stage
+        BRANCH: !Ref Branch
+
+Resources:
+  TransformExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: ['logs:*']
+                Resource: 'arn:aws:logs:*:*:*'
+              - Effect: Allow
+                Action: ['s3:*']
+                Resource: '*'
+  TransformFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt TransformFunction.Arn
+      Principal: 'cloudformation.amazonaws.com'
+  TransformFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: api-lambda
+      CodeUri: ../../handler.zip
