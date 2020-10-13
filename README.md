@@ -62,3 +62,7 @@ So without any effort at all a developer has satisfied most of the security cont
 * [AWS Security Hub User Guide](https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html)
 * [AWS Foundational Security Best Practices controls](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html)
 * [CIS Amazon Web Services Foundations 1.2.0 (PDF)](https://d1.awsstatic.com/whitepapers/compliance/AWS_CIS_Foundations_Benchmark.pdf)
+
+# License
+
+This code is released under Apache 2.0 license and is copyright [Mark Wolfe](https://www.wolfe.id.au).
