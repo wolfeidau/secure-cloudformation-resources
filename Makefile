@@ -1,4 +1,4 @@
-APPNAME := tunnel
+APPNAME := cf-security-transform
 STAGE ?= dev
 BRANCH ?= master
 
@@ -6,6 +6,8 @@ GOLANGCI_VERSION = 1.31.0
 
 GIT_HASH := $(shell git rev-parse --short HEAD)
 BUILD_DATE := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+default: clean build archive deploy
 
 ci: clean lint test
 .PHONY: ci
@@ -23,6 +25,9 @@ bin/mockgen:
 
 bin/gcov2lcov:
 	@env GOBIN=$$PWD/bin GO111MODULE=on go install github.com/jandelgado/gcov2lcov
+
+bin/rain:
+	@env GOBIN=$$PWD/bin GO111MODULE=on go install github.com/aws-cloudformation/rain
 
 clean:
 	@echo "--- clean all the things"
@@ -42,27 +47,25 @@ test: bin/gcov2lcov
 	@bin/gcov2lcov -infile=coverage.txt -outfile=coverage.lcov
 .PHONY: test
 
+build:
+	@echo "--- build all the things"
+	@mkdir -p dist
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -trimpath -o dist ./cmd/...
+.PHONY: build
+
 archive:
 	@echo "--- build an archive"
 	@cd dist && zip -X -9 -r ../handler.zip *-lambda
 .PHONY: archive
 
-package:
-	@echo "--- package lambdas into handler.zip"
-	@echo "Running as: $(shell aws sts get-caller-identity --query Arn --output text)"
-	@aws cloudformation package \
-		--template-file sam/transform/transform.yaml \
-		--output-template-file transform.out.yaml \
-		--s3-bucket $(S3_BUCKET) \
-		--s3-prefix sam
-.PHONY: package
-
 deploy:
 	@echo "--- deploy db into aws"
-	@aws cloudformation deploy \
-		--no-fail-on-empty-changeset \
-		--template-file transform.out.yaml \
-		--capabilities CAPABILITY_IAM \
-		--stack-name $(APPNAME)-$(STAGE)-$(BRANCH)-db \
-		--parameter-overrides AppName=$(APPNAME) Stage=$(STAGE) Branch=$(BRANCH)
+	bin/rain deploy sam/transform/transform.yaml $(APPNAME)-$(STAGE)-$(BRANCH) \
+		--params AppName=$(APPNAME),Stage=$(STAGE),Branch=$(BRANCH) --force
 .PHONY: deploy
+
+deploy-test:
+	@echo "--- deploy db into aws"
+	bin/rain deploy sam/test/test.yaml $(APPNAME)-$(STAGE)-$(BRANCH)-test \
+		--params AppName=$(APPNAME),Stage=$(STAGE),Branch=$(BRANCH) --force
+.PHONY: deploy-test

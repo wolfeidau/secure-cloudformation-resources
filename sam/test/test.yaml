@@ -1,0 +1,7 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform:
+  - 170889777468::SecurityTransform
+Resources:
+  MyDataBucket:
+    Type: AWS::S3::Bucket
+    Properties: {}

@@ -1,12 +1,12 @@
-AWSTemplateFormatVersion: 2010-09-09
-Transform: AWS::Serverless-2016-10-31
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
 Description: "wolfeidau: Security Transform"
 
 Parameters:
   AppName:
     Description: Provide the name of the application.
     Type: String
-    Default: "serverless-tunnel"
+    Default: "cf-security-transform"
   Stage:
     Description: Provide the stage of the application.
     Type: String
@@ -28,36 +28,32 @@ Globals:
         BRANCH: !Ref Branch
 
 Resources:
-  TransformExecutionRole:
-    Type: AWS::IAM::Role
+  SecurityTransformFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: [lambda.amazonaws.com]
-            Action: ['sts:AssumeRole']
-      Path: /
-      Policies:
-        - PolicyName: root
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: ['logs:*']
-                Resource: 'arn:aws:logs:*:*:*'
-              - Effect: Allow
-                Action: ['s3:*']
-                Resource: '*'
-  TransformFunctionPermissions:
+      Handler: transform-lambda
+      CodeUri: ../../handler.zip
+  SecurityTransformFunctionPermissions:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
-      FunctionName: !GetAtt TransformFunction.Arn
+      FunctionName: !GetAtt SecurityTransformFunction.Arn
       Principal: 'cloudformation.amazonaws.com'
-  TransformFunction:
-    Type: AWS::Serverless::Function
+  SecurityTransform:
+    Type: AWS::CloudFormation::Transform
     Properties:
-      Handler: api-lambda
-      CodeUri: ../../handler.zip
+      Name: !Sub '${AWS::AccountId}::SecurityTransform'
+      Description: Create Security transforms
+      RoutingTable:
+        '*': 0_1
+      Versions:
+        - VersionName: 0_1
+          Description: Version 0_1 of the Security transform
+          FunctionName: !GetAtt SecurityTransformFunction.Arn
+Outputs:
+  AppName:
+    Value: !Ref AppName
+  Stage:
+    Value: !Ref Stage
+  Branch:
+    Value: !Ref Branch
