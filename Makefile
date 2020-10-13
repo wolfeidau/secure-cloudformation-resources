@@ -43,7 +43,7 @@ lint: bin/golangci-lint
 
 test: bin/gcov2lcov
 	@echo "--- test all the things"
-	@go test -v -covermode=count -coverprofile=coverage.txt ./ ./pkg/... ./internal/...
+	@go test -v -covermode=count -coverprofile=coverage.txt ./internal/...
 	@bin/gcov2lcov -infile=coverage.txt -outfile=coverage.lcov
 .PHONY: test
 
