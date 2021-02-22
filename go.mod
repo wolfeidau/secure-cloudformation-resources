@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/aws/aws-lambda-go v1.19.1
-	github.com/awslabs/goformation/v4 v4.15.3
+	github.com/awslabs/goformation/v4 v4.16.4
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/wolfeidau/lambda-go-extras v1.2.0
